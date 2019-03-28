@@ -64,9 +64,15 @@ metadata:
   labels:
     app: pmm
 spec:
+  selector:
+    matchLabels:
+      app: pmm
   strategy:
     type: Recreate
   template:
+    metadata:
+      labels:
+        app: pmm
     spec:
       containers:
       - name: pmm
@@ -77,10 +83,7 @@ spec:
         resources:
           requests:
             cpu: 200m
-            memory: 4Gi
-          limits:
-            cpu: 200m
-            memory: 7Gi
+            memory: 3Gi
         volumeMounts:
         - mountPath: "/opt/prometheus/data"
           name: prometheus
