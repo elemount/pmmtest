@@ -12,7 +12,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: prometheusdata
+  name: data
 spec:
   accessModes:
   - ReadWriteOnce
@@ -20,42 +20,6 @@ spec:
   resources:
     requests:
       storage: 80Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysqldata
-spec:
-  accessModes:
-  - ReadWriteOnce
-  storageClassName: default
-  resources:
-    requests:
-      storage: 5Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: consuldata
-spec:
-  accessModes:
-  - ReadWriteOnce
-  storageClassName: default
-  resources:
-    requests:
-      storage: 5Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: grafanadata
-spec:
-  accessModes:
-  - ReadWriteOnce
-  storageClassName: default
-  resources:
-    requests:
-      storage: 5Gi
 ---
 kind: Deployment
 apiVersion: apps/v1
@@ -86,21 +50,18 @@ spec:
             memory: 3Gi
         volumeMounts:
         - mountPath: "/opt/prometheus/data"
-          name: prometheus
+          name: data
+          subPath: prometheus
         - mountPath: "/opt/consul-data"
-          name: consul
+          name: data
+          subPath: consul
         - mountPath: "/var/lib/grafana"
-          name: grafana
+          name: data
+          subPath: grafana
+        - mountPath: "/var/lib/mysql"
+          name: data
+          subPath: mysql
       volumes:
-        - name: prometheus
+        - name: data
           persistentVolumeClaim:
-            claimName: prometheusdata
-        - name: consul
-          persistentVolumeClaim:
-            claimName: consuldata
-        - name: mysql
-          persistentVolumeClaim:
-            claimName: mysqldata
-        - name: grafana
-          persistentVolumeClaim:
-            claimName: grafanadata
+            claimName: data
