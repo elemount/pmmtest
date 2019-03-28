@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pmm-server
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: pmm
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheusdata
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: default
+  resources:
+    requests:
+      storage: 80Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysqldata
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: default
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: consuldata
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: default
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafanadata
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: default
+  resources:
+    requests:
+      storage: 5Gi
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: pmm
+  labels:
+    app: pmm
+spec:
+  strategy:
+    type: Recreate
+  template:
+    spec:
+      containers:
+      - name: pmm
+        image: percona/pmm-server
+        ports:
+        - containerPort: 80
+          name: pmm
+        resources:
+          requests:
+            cpu: 200m
+            memory: 4Gi
+          limits:
+            cpu: 200m
+            memory: 7Gi
+        volumeMounts:
+        - mountPath: "/opt/prometheus/data"
+          name: prometheus
+        - mountPath: "/opt/consul-data"
+          name: consul
+        - mountPath: "/var/lib/grafana"
+          name: grafana
+      volumes:
+        - name: prometheus
+          persistentVolumeClaim:
+            claimName: prometheusdata
+        - name: consul
+          persistentVolumeClaim:
+            claimName: consuldata
+        - name: mysql
+          persistentVolumeClaim:
+            claimName: mysqldata
+        - name: grafana
+          persistentVolumeClaim:
+            claimName: grafanadata
