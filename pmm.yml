@@ -9,69 +9,6 @@ spec:
     app: pmm
   type: LoadBalancer
 ---
-kind: Deployment
-apiVersion: apps/v1
-metadata:
-  name: pmm
-  labels:
-    app: pmm
-spec:
-  selector:
-    matchLabels:
-      app: pmm
-  strategy:
-    type: Recreate
-  template:
-    metadata:
-      labels:
-        app: pmm
-    spec:
-      initContainers:
-      - name: mkfolder
-        image: busybox
-        volumeMounts:
-        - mountPath: "/consul"
-          name: consul
-        - mountPath: "/grafana"
-          name: grafana
-        - mountPath: "/mysql"
-          name: mysql
-        - mountPath: "/prometheus"
-          name: prometheus
-        command: ["/bin/chmod", "-R", "777", "/consul", "/grafana", "/mysql", "/prometheus"]
-      containers:
-      - name: pmm
-        image: percona/pmm-server
-        ports:
-        - containerPort: 80
-          name: pmm
-        resources:
-          requests:
-            cpu: 200m
-            memory: 3Gi
-        volumeMounts:
-        - mountPath: "/opt/consul-data"
-          name: consul
-        - mountPath: "/var/lib/grafana"
-          name: grafana
-        - mountPath: "/var/lib/mysql"
-          name: mysql
-        - mountPath: "/opt/prometheus/data"
-          name: prometheus
-      volumes:
-      - name: consul
-        persistentVolumeClaim:
-          claimName: consul
-      - name: grafana
-        persistentVolumeClaim:
-          claimName: grafana
-      - name: mysql
-        persistentVolumeClaim:
-          claimName: mysql
-      - name: prometheus
-        persistentVolumeClaim:
-          claimName: prometheus                          
----
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -119,3 +56,72 @@ spec:
   resources:
     requests:
       storage: 80Gi
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: pmm
+  labels:
+    app: pmm
+spec:
+  selector:
+    matchLabels:
+      app: pmm
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: pmm
+    spec:
+      initContainers:
+      - name: mkfolder
+        image: busybox
+        volumeMounts:
+        - mountPath: "/consul"
+          name: consul
+        - mountPath: "/grafana"
+          name: grafana
+        - mountPath: "/mysql"
+          name: mysql
+        - mountPath: "/prometheus"
+          name: prometheus
+        command: ["/bin/chmod", "-R", "777", "/consul", "/grafana", "/mysql", "/prometheus"]
+      - name: copymysql
+        image: percona/pmm-server
+        volumeMounts:
+        - mountPath: "/mysql"
+          name: mysql
+        command: ["sh", "-c", "sleep 5 && rsync -a -v --ignore-existing /var/lib/mysql/ /mysql"]
+      containers:
+      - name: pmm
+        image: percona/pmm-server
+        ports:
+        - containerPort: 80
+          name: pmm
+        resources:
+          requests:
+            cpu: 200m
+            memory: 3Gi
+        volumeMounts:
+        - mountPath: "/opt/consul-data"
+          name: consul
+        - mountPath: "/var/lib/grafana"
+          name: grafana
+        - mountPath: "/var/lib/mysql"
+          name: mysql
+        - mountPath: "/opt/prometheus/data"
+          name: prometheus
+      volumes:
+      - name: consul
+        persistentVolumeClaim:
+          claimName: consul
+      - name: grafana
+        persistentVolumeClaim:
+          claimName: grafana
+      - name: mysql
+        persistentVolumeClaim:
+          claimName: mysql
+      - name: prometheus
+        persistentVolumeClaim:
+          claimName: prometheus                          
