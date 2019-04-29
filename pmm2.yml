@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pmm
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: pmm
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pmmdata
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 80Gi
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: pmm
+  labels:
+    app: pmm
+spec:
+  selector:
+    matchLabels:
+      app: pmm
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: pmm
+    spec:
+      containers:
+      - name: pmm
+        image: perconalab/pmm-server:2.0.0-alpha1
+        ports:
+        - containerPort: 80
+          name: pmm
+        resources:
+          requests:
+            cpu: 200m
+            memory: 3Gi
+        volumeMounts:
+        - mountPath: "/srv"
+          name: pmmdata
+      volumes:
+      - name: pmmdata
+        persistentVolumeClaim:
+          claimName: pmmdata                    
