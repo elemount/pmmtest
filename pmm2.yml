@@ -43,7 +43,7 @@ spec:
         volumeMounts:
         - mountPath: "/srv"
           name: pmmdata2
-        command: ["/bin/sh", "-c", "/bin/chmod 777 /srv && /bin/mkdir /srv/postgres /srv/logs && /bin/chmod 777 /srv/postgres /srv/logs"]
+        command: ["/bin/sh", "-c", "/bin/chmod 777 /srv && /bin/mkdir -p /srv/postgres /srv/logs && /bin/chmod 777 /srv/postgres /srv/logs"]
       containers:
       - name: pmm
         image: perconalab/pmm-server:2.0.0-alpha2
