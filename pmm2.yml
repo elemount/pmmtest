@@ -37,6 +37,13 @@ spec:
       labels:
         app: pmm
     spec:
+      initContainers:
+      - name: mkfolder
+        image: busybox
+        volumeMounts:
+        - mountPath: "/srv"
+          name: pmmdata
+        command: ["mkdir -p /srv/logs"]
       containers:
       - name: pmm
         image: perconalab/pmm-server:2.0.0-alpha2
