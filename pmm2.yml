@@ -12,7 +12,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pmmdata
+  name: pmmdata2
 spec:
   accessModes:
   - ReadWriteOnce
@@ -42,8 +42,8 @@ spec:
         image: busybox
         volumeMounts:
         - mountPath: "/srv"
-          name: pmmdata
-        command: ["/bin/chmod", "-R", "777", "/srv"]
+          name: pmmdata2
+        command: ["/bin/chown", "pmm:pmm", "/srv"]
       containers:
       - name: pmm
         image: perconalab/pmm-server:2.0.0-alpha2
@@ -56,8 +56,8 @@ spec:
             memory: 3Gi
         volumeMounts:
         - mountPath: "/srv"
-          name: pmmdata
+          name: pmmdata2
       volumes:
-      - name: pmmdata
+      - name: pmmdata2
         persistentVolumeClaim:
-          claimName: pmmdata                    
+          claimName: pmmdata2                    
